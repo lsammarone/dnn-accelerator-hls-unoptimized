@@ -65,7 +65,7 @@ public:
             // The number of steps in a run of the systolic array is equal to:
             // the ramp-up time + number of pixels + flush time
             // Your code starts here
-            for(uint_16 i=0; i < (params.OX0 * params.OY0 + OC0 + IC0 -1); i++ ){
+            for(uint_16 step=0; step < (params.OX0 * params.OY0 + OC0 + IC0 -1); step++ ){
             // Your code ends here 
             // You should now be in the body of the loop
             // -------------------------------
@@ -74,9 +74,9 @@ public:
                 // If you are in the ramp up time, read in weights from the channel
                 // and store it in the weights array
                 // Your code starts here
-                if (i < IC0) {
+                if (step < IC0) {
                     PackedInt<WEIGHT_PRECISION, OC0> weight_eachchannel = weight.read();
-                        reg_weight.value[i] = weight_eachchannel;
+                        reg_weight.value[step] = weight_eachchannel;
                 }
                 // Your code ends here
                 // -------------------------------
@@ -88,7 +88,7 @@ public:
                 // Read inputs from the channel and store in the variable in_col
                 // Note: you don't read in any inputs during the flush time
                 // Your code starts here
-                if (i < (params.OX0 * params.OY0) ){
+                if (step < (params.OX0 * params.OY0) ){
                     in_col = input.read();
                 }
                 // Your code ends here
@@ -127,14 +127,14 @@ public:
                 // Set partial outputs for the array to psum_buf.
                 // Depending on the loop index, the partial output will be 0 or a value from the accumulation buffer
                 // Your code starts here
-                if (i < params.OX0 * params.OY0){  //NEED TO CHECK IF THE RIGHT CONDITION
+                if (step < params.OX0 * params.OY0){  //NEED TO CHECK IF THE RIGHT CONDITION
                     if(loopIndices.fx_idx==0 && loopIndices.fy_idx==0 && loopIndices.ic1_idx==0){
                         for (int z=0; z < OC0; z++){
                             psum_buf.value[z]=0;
                         }
                     }
                     else{
-                        psum_buf.value = accumulation_buffer.value[i];   //NEED TO DO a value from the accumulation buffer
+                        psum_buf = accumulation_buffer.value[step];   //NEED TO DO a value from the accumulation buffer
                     }
                 }
                 // Your code ends here
@@ -160,7 +160,7 @@ public:
                 // Assign values from output_buf into the partial sum registers for the first row of PEs
                 // Your code starts here
                 for (int y=0; y < OC0; y++){
-                    reg_psum_in.value[0].value[y+1]=output_buf[y];
+                    reg_psum_in.value[0].value[y+1]=output_buf.value[y];
                 }
                 // Your code ends here
                 // -------------------------------
@@ -170,9 +170,9 @@ public:
                 // Run the 16x16 PE array
                 // Make sure that the correct registers are given to the PE
                 // Your code starts here
-                for (int m=0; m<OC0; m++){
-                    for (int n=0; n<IC0; n++){
-                        PE_unit[m][n].run(reg_input_in.value[m].value[n+1],reg_psum_in.value[m].value[n+1],reg_weight.value[m].value.[n],reg_input_in.value[m+1].value[n+1],reg_psum_in.value[m+1].value[n+1]); //NEED TO DO
+                for (int x=0; x<OC0; x++){
+                    for (int y=0; y<IC0; y++){
+                        PE_unit[y][x].run(reg_input_in.value[x].value[y+1],reg_psum_in.value[x].value[y+1],reg_weight.value[x].value[y],reg_input_out.value[x+1].value[y+1],reg_psum_out.value[x+1].value[y+1]); //NEED TO DO
                     }
                 }
                 // Your code ends here
@@ -187,7 +187,7 @@ public:
 
                 #define FIFO_WRITE_BODY_NEW(z,i,unused)\
                     ODTYPE BOOST_PP_CAT(accum_fifo_output_, i); \
-                    BOOST_PP_CAT(accum_fifo_, i).run( psum_reg[IC0][i] , BOOST_PP_CAT(accum_fifo_output_, i) );\
+                    BOOST_PP_CAT(accum_fifo_, i).run( reg_psum_in.value[IC0].value[i+1], BOOST_PP_CAT(accum_fifo_output_, i) ); \
                     output_row.value[i] = BOOST_PP_CAT(accum_fifo_output_,i); \
                 
                 REPEAT(FIFO_WRITE_BODY_NEW)
@@ -196,11 +196,11 @@ public:
                 // After a certain number of cycles, you will have valid output from the systolic array
                 // Depending on the loop indices, this valid output will either be written into the accumulation buffer or written out
                 // Your code starts here
-                if (i >= OC+IC-1){ 
-                    if ((loopIndices.fx_idx==params.FX-1) && (loopIndices.fy_idx==params.FY-1) && (loopIndices.ic1_idx==params.IC1-1){
+                if (step >= OC0+IC0-1){ 
+                    if ((loopIndices.fx_idx==params.FX-1) && (loopIndices.fy_idx==params.FY-1) && (loopIndices.ic1_idx==params.IC1-1)){
                         output.write(output_row);
                     } //THIS IS WHEN THE OX*OY CYCLES FINISH, LOAD THE OUTPUT OF ONE SYSTOLICARRRAYCORE (ONE SYSTOLICARRAYCORE HAS OX*OY+RAMPUP+FLUSH CYCLES )
-                    accumulation_buffer.value[i - (OC+IC-1)] = output_row; //
+                    accumulation_buffer.value[step - (OC0+IC0-1)] = output_row; //
                 }
                 // Your code ends here
                 // -------------------------------
@@ -234,10 +234,10 @@ private:
     // Your code starts here
     PackedInt2D<WEIGHT_PRECISION, OC0, IC0> reg_weight;
     PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_in;
-    PackedInt2D<INPUT_PRECISION, OC0+1, IC0+1> reg_psum_in;
-    ProcessingElement <IDTYPE, ODTYPE> PE_unit[IC0][OC0];
+    PackedInt2D<OUTPUT_PRECISION, OC0+1, IC0+1> reg_psum_in;
+    ProcessingElement<IDTYPE, ODTYPE> PE_unit[IC0][OC0];
     PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_out;
-    PackedInt2D<INPUT_PRECISION, OC0+1, IC0+1> reg_psum_out;
+    PackedInt2D<OUTPUT_PRECISION, OC0+1, IC0+1> reg_psum_out;
 
     PackedInt2D<OUTPUT_PRECISION, OC0, ACCUMULATION_BUFFER_SIZE> accumulation_buffer;
 
