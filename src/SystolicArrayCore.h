@@ -42,9 +42,9 @@ public:
         #ifndef __SYNTHESIS__
         //assert(params.OX0 * params.OY0 < OC+IC-1);
         // Debug example:
-        // printf("paramsIn channel size: %d\n", paramsIn.size());
-        // printf("weigh channel size: %d\n", weight.size());
-        // printf("input channel size: %d\n\n", input.size());
+        printf("paramsIn channel size: %d\n", paramsIn.size());
+        printf("weigh channel size: %d\n", weight.size());
+        printf("input channel size: %d\n\n", input.size());
         #endif
 
         #ifndef __SYNTHESIS__
@@ -88,7 +88,7 @@ public:
                 // Read inputs from the channel and store in the variable in_col
                 // Note: you don't read in any inputs during the flush time
                 // Your code starts here
-                if (step < (params.OX0 * params.OY0) ){
+                if (step < (params.OX0 * params.OY0) ){ //double check
                     in_col = input.read();
                 }
                 // Your code ends here
@@ -187,7 +187,7 @@ public:
 
                 #define FIFO_WRITE_BODY_NEW(z,i,unused)\
                     ODTYPE BOOST_PP_CAT(accum_fifo_output_, i); \
-                    BOOST_PP_CAT(accum_fifo_, i).run( reg_psum_in.value[IC0].value[i+1], BOOST_PP_CAT(accum_fifo_output_, i) ); \
+                    BOOST_PP_CAT(accum_fifo_, i).run(reg_psum_in.value[IC0].value[i+1], BOOST_PP_CAT(accum_fifo_output_, i) ); \
                     output_row.value[i] = BOOST_PP_CAT(accum_fifo_output_,i); \
                 
                 REPEAT(FIFO_WRITE_BODY_NEW)

@@ -35,7 +35,7 @@ void run(ac_channel<Params> &paramsIn,
                                 loopIndices_for_Core.fy_idx = y;
                                 loopIndices_for_Core.ic1_idx = n;
                                 paramsOut.write(params);
-                                loopIndicesOut.write(loopIndicesCore);
+                                loopIndicesOut.write(loopIndices_for_Core);
                             }
                         }
                     }
