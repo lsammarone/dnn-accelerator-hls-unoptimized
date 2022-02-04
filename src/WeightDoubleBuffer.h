@@ -26,7 +26,7 @@ public:
                   temp_data.value[k+2] = temp_din.value[2];
                   temp_data.value[k+3] = temp_din.value[3];
               }
-              temp.data[i] = temp_data;
+              temp.data[j] = temp_data;
           }
         dout.write(temp);
         }

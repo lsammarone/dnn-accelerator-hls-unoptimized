@@ -32,7 +32,7 @@ int run_layer(Params params){
       for (int col = 0; col < STRIDE * (OFMAP_WIDTH-1) + FILTER_SIZE; col++) {
         for (int c = 0; c < IFMAP_CHANNELS; c++) {
           if (rand_init == 1) {
-            input[row][col][c] = (IDTYPE)(rand() % 100); 
+            input[row][col][c] = (IDTYPE) (rand() % 100); 
           } else {
             input[row][col][c] = c + IFMAP_CHANNELS*col + IFMAP_CHANNELS*(OFMAP_WIDTH+FILTER_SIZE-1)*row;
           }
@@ -68,7 +68,7 @@ int run_layer(Params params){
         for (int c = 0; c < IFMAP_CHANNELS; c++) {
           for (int k = 0; k < OFMAP_CHANNELS; k++) {
             if (rand_init == 1) {
-              weight[wy][wx][c][k] = (IDTYPE)(rand()%100);  
+              weight[wy][wx][c][k] = (IDTYPE) (rand()%100);  
             } else {
               weight[wy][wx][c][k] = c + k + OFMAP_CHANNELS*c + OFMAP_CHANNELS*IFMAP_CHANNELS*wx + OFMAP_CHANNELS*IFMAP_CHANNELS*FILTER_SIZE*wy;  
             }

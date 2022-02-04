@@ -1,3 +1,4 @@
+
 #ifndef SYSTOLIC_ARRAY_CORE_H
 #define SYSTOLIC_ARRAY_CORE_H
 
@@ -42,9 +43,9 @@ public:
         #ifndef __SYNTHESIS__
         //assert(params.OX0 * params.OY0 < OC+IC-1);
         // Debug example:
-        printf("paramsIn channel size: %d\n", paramsIn.size());
-        printf("weigh channel size: %d\n", weight.size());
-        printf("input channel size: %d\n\n", input.size());
+        //printf("paramsIn channel size: %d\n", paramsIn.size());
+        //printf("weigh channel size: %d\n", weight.size());
+        //printf("input channel size: %d\n\n", input.size());
         #endif
 
         #ifndef __SYNTHESIS__
@@ -117,6 +118,7 @@ public:
                 // Your code starts here 
                 for (int x=0; x<IC0; x++){
                     reg_input_in.value[0].value[x+1]=input_buf.value[x];
+                    //reg_input_in.value[0].value[x]=input_buf.value[x];
                 }
                 // Your code ends here
                 // -------------------------------
@@ -161,6 +163,7 @@ public:
                 // Your code starts here
                 for (int y=0; y < OC0; y++){
                     reg_psum_in.value[0].value[y+1]=output_buf.value[y];
+                    //reg_psum_in.value[0].value[y]=output_buf.value[y];
                 }
                 // Your code ends here
                 // -------------------------------
@@ -172,12 +175,13 @@ public:
                 // Your code starts here
                 for (int x=0; x<OC0; x++){
                     for (int y=0; y<IC0; y++){
-                        PE_unit[y][x].run(reg_input_in.value[x].value[y+1],reg_psum_in.value[x].value[y+1],reg_weight.value[x].value[y],reg_input_out.value[x+1].value[y+1],reg_psum_out.value[x+1].value[y+1]); //NEED TO DO
+                        PE_unit[y][x].run(reg_input_in.value[x].value[y+1],reg_psum_in.value[y].value[x+1],reg_weight.value[y].value[x],reg_input_out.value[x+1].value[y+1],reg_psum_out.value[y+1].value[x+1]);
+                        //PE_unit[y][x].run(reg_input_in.value[x].value[y],reg_psum_in.value[x].value[y],reg_weight.value[x].value[y],reg_input_out.value[x+1].value[y],reg_psum_out.value[x+1].value[y]); //NEED TO DO
                     }
                 }
                 // Your code ends here
                 // -------------------------------
-                
+                //reg_psum_in
 
                 /*
                  * FIFOs for partial outputs coming out of the systolic array
@@ -233,11 +237,16 @@ private:
     //  - psum registers (two sets, one at the input of the PE and one at the output) 
     // Your code starts here
     PackedInt2D<WEIGHT_PRECISION, OC0, IC0> reg_weight;
-    PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_in;
-    PackedInt2D<OUTPUT_PRECISION, OC0+1, IC0+1> reg_psum_in;
     ProcessingElement<IDTYPE, ODTYPE> PE_unit[IC0][OC0];
     PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_out;
     PackedInt2D<OUTPUT_PRECISION, OC0+1, IC0+1> reg_psum_out;
+    PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_in;
+    PackedInt2D<OUTPUT_PRECISION, OC0+1, IC0+1> reg_psum_in;
+
+    /*PackedInt2D<INPUT_PRECISION, IC0, OC0> reg_input_out;
+    PackedInt2D<OUTPUT_PRECISION, OC0, IC0> reg_psum_out;
+    PackedInt2D<INPUT_PRECISION, IC0, OC0> reg_input_in;
+    PackedInt2D<OUTPUT_PRECISION, OC0, IC0> reg_psum_in;*/
 
     PackedInt2D<OUTPUT_PRECISION, OC0, ACCUMULATION_BUFFER_SIZE> accumulation_buffer;
 

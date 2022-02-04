@@ -58,6 +58,7 @@ struct Params {
 typedef ac_int<INPUT_PRECISION,true> IDTYPE; 
 typedef ac_int<WEIGHT_PRECISION,true> WDTYPE; 
 typedef ac_int<OUTPUT_PRECISION,true> ODTYPE; 
+//typedef ac_int<32,true> ODTYPE; 
 
 
 #define FX_MAX 7

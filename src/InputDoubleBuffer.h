@@ -19,7 +19,23 @@ public:
         uint_16 IY0 = (params.OY0-1)*params.STRIDE + params.FY;
         uint_16 total_number_block = params.OY1 * params.OX1;
 
-        for (uint_16 i= 0; i < total_number_block; i++) {
+        for (uint_16 i=0; i < params.OY1 * params.OX1; i++ ){
+            chanStruct<PackedInt<INPUT_PRECISION, IC0>, size> temp;
+            for (uint_16 j=0; j < params.IC1 * IX0 * IY0; j++){
+                PackedInt<INPUT_PRECISION, IC0> temp_data;
+                for (uint_16 k=0; k <IC0; k+=4) {
+                    PackedInt<INPUT_PRECISION, 4> temp_din = din.read();
+                    temp_data.value[k] = temp_din .value[0];
+                    temp_data.value[k+1] = temp_din .value[1];
+                    temp_data.value[k+2] = temp_din .value[2];
+                    temp_data.value[k+3] = temp_din .value[3];
+                }
+                temp.data[j] = temp_data;
+            }
+            dout.write(temp);
+        }
+        
+        /*for (uint_16 i= 0; i < total_number_block; i++) {
             chanStruct<PackedInt<INPUT_PRECISION,IC0>,size> temp;
             for(uint_16 loopic1 = 0; loopic1 < params.IC1; loopic1++) {
                 for(uint_16 loopiy0 = 0; loopiy0 < IY0; loopiy0++) {
@@ -38,7 +54,7 @@ public:
                 }
             }
             dout.write(temp);
-        }
+        } */
         // Your code ends here
         // -------------------------------
     }

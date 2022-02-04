@@ -1,11 +1,11 @@
 const int IC0 = 16;
 const int OC0 = 16;
-const int IC1 = 2;
-const int OC1 = 1;
+const int IC1 = 32;
+const int OC1 = 32;
 const int FX = 3;
 const int FY = 3;
 const int OX0 = 7;
 const int OY0 = 7;
-const int OX1 = 2;
-const int OY1 = 2;
-const int STRIDE = 2; 
+const int OX1 = 1;
+const int OY1 = 1;
+const int STRIDE = 1; 
