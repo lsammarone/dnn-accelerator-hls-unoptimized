@@ -40,7 +40,7 @@ public:
         ac_channel<LoopIndices> &loopIndicesIn)
     {
         #ifndef __SYNTHESIS__
-        //assert(params.OX0 * params.OY0 < ACCUMULATION_BUFFER_SIZE);
+        //assert(params.OX0 * params.OY0 < OC+IC-1);
         // Debug example:
         // printf("paramsIn channel size: %d\n", paramsIn.size());
         // printf("weigh channel size: %d\n", weight.size());
@@ -116,7 +116,7 @@ public:
                 // Assign values from input_buf into the registers for the first column of PEs
                 // Your code starts here 
                 for (int x=0; x<IC0; x++){
-                    reg_input_in.value[0].value[x]=input_buf.value[x];
+                    reg_input_in.value[0].value[x+1]=input_buf.value[x];
                 }
                 // Your code ends here
                 // -------------------------------
@@ -134,7 +134,7 @@ public:
                         }
                     }
                     else{
-                        psum_buf.value=   //NEED TO DO a value from the accumulation buffer
+                        psum_buf.value = accumulation_buffer.value[i];   //NEED TO DO a value from the accumulation buffer
                     }
                 }
                 // Your code ends here
@@ -172,7 +172,7 @@ public:
                 // Your code starts here
                 for (int m=0; m<OC0; m++){
                     for (int n=0; n<IC0; n++){
-                        PE_unit[m][n].run() //NEED TO DO
+                        PE_unit[m][n].run(reg_input_in.value[m].value[n+1],reg_psum_in.value[m].value[n+1],reg_weight.value[m].value.[n],reg_input_in.value[m+1].value[n+1],reg_psum_in.value[m+1].value[n+1]); //NEED TO DO
                     }
                 }
                 // Your code ends here
@@ -196,8 +196,11 @@ public:
                 // After a certain number of cycles, you will have valid output from the systolic array
                 // Depending on the loop indices, this valid output will either be written into the accumulation buffer or written out
                 // Your code starts here
-                if (i >= OC+IC-1){ //NEED TO CHECK AGAIN, THE FIRST TIME LAST ROW OF SYSTOLIC ARRAY FINISH COMPUTE
-                    
+                if (i >= OC+IC-1){ 
+                    if ((loopIndices.fx_idx==params.FX-1) && (loopIndices.fy_idx==params.FY-1) && (loopIndices.ic1_idx==params.IC1-1){
+                        output.write(output_row);
+                    } //THIS IS WHEN THE OX*OY CYCLES FINISH, LOAD THE OUTPUT OF ONE SYSTOLICARRRAYCORE (ONE SYSTOLICARRAYCORE HAS OX*OY+RAMPUP+FLUSH CYCLES )
+                    accumulation_buffer.value[i - (OC+IC-1)] = output_row; //
                 }
                 // Your code ends here
                 // -------------------------------
@@ -206,7 +209,10 @@ public:
                 // Cycle the input/psum registers
                 // That is, the outputs that a PE wrote to should now become the input for the next PE
                 // Your code starts here
-
+                for (int i = 0; i < OC0; i++) {  //SECOND LINE LOOP BY IC0
+                    reg_input_in.value[i+1] = reg_input_out.value[i+1];
+                    reg_psum_in.value[i+1] = reg_psum_out.value[i+1];
+                }
                 // Your code ends here
                 // -------------------------------
             }
@@ -227,9 +233,16 @@ private:
     //  - psum registers (two sets, one at the input of the PE and one at the output) 
     // Your code starts here
     PackedInt2D<WEIGHT_PRECISION, OC0, IC0> reg_weight;
-    PackedInt2D<INPUT_PRECISION, IC0, OC0> reg_input_in;
-    PackedInt2D<INPUT_PRECISION, OC0, IC0> reg_psum_in;
+    PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_in;
+    PackedInt2D<INPUT_PRECISION, OC0+1, IC0+1> reg_psum_in;
     ProcessingElement <IDTYPE, ODTYPE> PE_unit[IC0][OC0];
+    PackedInt2D<INPUT_PRECISION, IC0+1, OC0+1> reg_input_out;
+    PackedInt2D<INPUT_PRECISION, OC0+1, IC0+1> reg_psum_out;
+
+    PackedInt2D<OUTPUT_PRECISION, OC0, ACCUMULATION_BUFFER_SIZE> accumulation_buffer;
+
+
+
     // Your code ends here
     // -------------------------------
     
