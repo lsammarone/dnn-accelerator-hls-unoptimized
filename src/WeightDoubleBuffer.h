@@ -14,7 +14,22 @@ public:
     {
         // -------------------------------
         // Your code starts here
-
+        Params params = paramsIn.read();
+        for(int i = 0; i < params.OX1 * params.OY1 * params.OC1; i++){
+        chanStruct<PackedInt<WEIGHT_PRECISION,OC0>,size> temp;
+          for(int j = 0; j < params.FX * params.FY * params.IC1 * IC0; j++) {
+              PackedInt<WEIGHT_PRECISION, OC0> temp_data;
+              for(int k = 0; k < OC0; k+=4) {
+                  PackedInt<WEIGHT_PRECISION, 4> temp_din = din.read();
+                  temp_data.value[k] = temp_din.value[0];
+                  temp_data.value[k+1] = temp_din.value[1];
+                  temp_data.value[k+2] = temp_din.value[2];
+                  temp_data.value[k+3] = temp_din.value[3];
+              }
+              temp.data[i] = temp_data;
+          }
+        dout.write(temp);
+        }
         // Your code ends here
         // -------------------------------
     }
@@ -32,7 +47,14 @@ public:
     {
         // -------------------------------
         // Your code starts here
-
+        Params params = paramsIn.read();
+        for(int i = 0; i < params.OX1 * params.OY1 * params.OC1; i++){
+          chanStruct<PackedInt<WEIGHT_PRECISION, OC0>,size> temp_din = din.read();
+          for (int j = 0; j < params.FX * params.FY * params.IC1 * IC0; j++) {
+              PackedInt<WEIGHT_PRECISION, OC0> temp1 = temp_din.data[j];
+              dout.write(temp1);
+          }
+        }
         // Your code ends here
         // -------------------------------
     }
